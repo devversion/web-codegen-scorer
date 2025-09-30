@@ -12,7 +12,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
-import { BuildErrorType } from '../../../../../runner/workers/builder/builder-types';
+import {
+  BuildErrorType,
+  BuildResultStatus,
+} from '../../../../../runner/workers/builder/builder-types';
 import {
   AssessmentResult,
   IndividualAssessment,
@@ -438,5 +441,16 @@ export class ReportViewer {
     } else {
       return 'failed';
     }
+  }
+
+  protected isBuildFailingDueToA11yRepairs(result: AssessmentResult) {
+    // A build is failing after a11y repairs if it was passing at some point, but then
+    // turned failing again.
+    return (
+      result.finalAttempt.buildResult.status === BuildResultStatus.ERROR &&
+      result.attemptDetails.some(
+        (a) => a.buildResult.status === BuildResultStatus.SUCCESS
+      )
+    );
   }
 }

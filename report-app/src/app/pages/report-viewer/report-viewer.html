@@ -258,18 +258,22 @@
 
               <div class="status-badge-group">
                 @let initialAttempt = result.attemptDetails[0];
-                @let repairAttempt =
-                  result.attemptDetails.length > 1
-                    ? result.attemptDetails[1]
-                    : null;
                 @let finalAttempt = result.attemptDetails.at(-1)!;
 
                 @if (finalAttempt.serveTestingResult?.runtimeErrors) {
                   <span class="status-badge error">Runtime error</span>
                 }
 
-                @if (repairAttempt?.buildResult?.status === 'error') {
-                  <span class="status-badge error">Build after repair</span>
+                @if (finalAttempt?.buildResult?.status === 'error') {
+                  @if (isBuildFailingDueToA11yRepairs(result)) {
+                    <span class="status-badge error"
+                      >Build failed (caused by a11y repairs)</span
+                    >
+                  } @else {
+                    @if (result.attemptDetails.length > 1) {
+                      <span class="status-badge error">Build failed</span>
+                    }
+                  }
                 }
 
                 @if (initialAttempt?.buildResult?.status === 'error') {
@@ -366,18 +370,20 @@
                           ? 'Initial response'
                           : `Repair attempt #${$index}`
                       }}
-                      @if (!isBuilt) {
-                        <span class="status-badge" [class.error]="!isBuilt"
-                          >Build</span
-                        >
-                      }
-                      @if (hasAxeViolations) {
-                        <span
-                          class="status-badge"
-                          [class.error]="hasAxeViolations"
-                          >A11y</span
-                        >
-                      }
+
+                      <span
+                        class="status-badge error"
+                        [class.error]="!isBuilt"
+                        [class.success]="isBuilt"
+                        >Build</span
+                      >
+
+                      <span
+                        class="status-badge"
+                        [class.error]="hasAxeViolations"
+                        [class.success]="!hasAxeViolations"
+                        >A11y</span
+                      >
                     </expansion-panel-header>
 
                     @if (expansionPanel.opened()) {
